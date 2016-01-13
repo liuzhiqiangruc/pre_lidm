@@ -68,10 +68,12 @@ void lr_grad(double *x, void *_ds, double *g, double *sg) {
         for (i = 0; i < col; i++){
             g[i] += lr->p.lambda * (x[i] + x[i]);
         }
-        memmove(sg, g, sizeof(double) * col);
+        if (sg) {
+            memmove(sg, g, sizeof(double) * col);
+        }
     }
     // for l1 owlqn
-    else if (lr->p.method == 1){
+    else if (lr->p.method == 1 && sg){
         memmove(sg, g, sizeof(double) * col);
         for (i = 0; i < col; i++){
             if (x[i] > 0.0){

@@ -15,6 +15,81 @@
 #define EPS 1E-30
 #define sign(x) ((x)>0.0?1:((x)<0.0?-1:0))
 
+/* -------------------------------------------
+ * brief : inv of H for bfgs
+ * n     : length of x
+ * s     : x1 - x0
+ * y     : g1 - g0
+ * b     : inv of H
+ * ------------------------------------------- */
+static void get_inv_h(int n, double *s, double *y, double *b) {
+    double *ytb  = (double *) malloc(sizeof(double) * n);
+    double *by   = (double *) malloc(sizeof(double) * n);
+    double *sst  = (double *) malloc(sizeof(double) * n * n);
+    double *byst = (double *) malloc(sizeof(double) * n * n);
+    double *sytb = (double *) malloc(sizeof(double) * n * n);
+    double sty = 0.0, ytby = 0.0, alpha = 0.0;
+    int i = 0, j = 0, offs = 0;
+
+    //STY = ST * Y
+    for (i = 0; i < n; ++i) {
+        sty += s[i] * y[i];
+    }
+
+    //BY = B * Y
+    for (i = offs = 0; i < n; ++i, offs += n) {
+        by[i] = 0;
+        for (j = 0; j < n; ++j) {
+            by[i] += b[offs + j] * y[j];
+        }
+    }
+
+    //BYST = BY * ST
+    for (i = offs = 0; i < n; ++i, offs += n) {
+        for (j = 0; j < n; ++j) {
+            byst[offs + j] = by[i] * s[j];
+        }
+    }
+
+    //YTB = YT * B
+    for (i = offs = 0; i < n; i++, offs += n){
+        ytb[i] = 0;
+        for (j = 0; j < n; j++){
+            ytb[j] += y[i] * b[offs + j];
+        }
+    }
+
+    //YTBY = YTB * Y
+    for (i = 0; i < n; ++i) {
+        ytby += ytb[i] * y[i];
+    }
+
+    //SYTB = S * YTB
+    for (i = offs = 0; i < n; ++i, offs += n) {
+        for (j = 0; j < n; ++j) {
+            sytb[offs + j] = s[i] * ytb[j];
+        }
+    }
+
+    //SST = S * ST
+    for (i = offs = 0; i < n; ++i, offs += n) {
+        for (j = 0; j < n; ++j) {
+            sst[offs + j] = s[i] * s[j];
+        }
+    }
+
+    alpha = 1. / sty + ytby / sty / sty;
+    for (i = 0; i < n * n; ++i) {
+        b[i] += alpha * sst[i] - (byst[i] + sytb[i]) / sty;
+    }
+
+    free(ytb);
+    free(by);
+    free(sst);
+    free(byst);
+    free(sytb);
+}
+
 /* -----------------------------------------------
  * brief   : get Hg for lbfgs or owlqn
  * n       : length of x
@@ -136,6 +211,59 @@ static double backtrack(void *data, EVAL_FN eval_fn, int n, double *x, double *g
     memmove(newx, x, sizeof(double) * n);
 finish:
     return step;
+}
+
+int bfgs(void *data, EVAL_FN eval_fn, GRAD_FN grad_fn, double ftol, int n, int it, double *retx) {
+    double *x0  = (double *) malloc(sizeof(double) * n);
+    double *x1  = (double *) malloc(sizeof(double) * n);
+    double *g0  = (double *) malloc(sizeof(double) * n);
+    double *g1  = (double *) malloc(sizeof(double) * n);
+    double *dir = (double *) malloc(sizeof(double) * n);
+    double *b   = (double *) malloc(sizeof(double) * n * n);
+    double *s   = (double *) malloc(sizeof(double) * n);
+    double *y   = (double *) malloc(sizeof(double) * n);
+    double *t   = NULL;
+    double fval = 0.0, prefval = 0.0, lambda = 0.0;
+    int  i = 0, j = 0, k = 0, offs = 0;
+    memset(x0, 0, sizeof(double) * n);
+    fval = eval_fn(x0, data);
+    grad_fn(x0, data, g0, NULL);
+    for (i = offs = 0; i < n; i++, offs += n){
+        b[offs + i] = 1.0;
+    }
+    for (i = 0; i < it; i++){
+        // newton dir : -H*g
+        memset(dir, 0, sizeof(double) * n);
+        for (j = offs = 0; j < n; j++, offs += n){
+            for (k = 0; k < n; k++){
+                dir[j] -= b[offs + k] * g0[k];
+            }
+        }
+        lambda = backtrack(data, eval_fn, n, x0, g0, dir, x1, LBFGS);
+        prefval = fval;
+        fval = eval_fn(x1, data);
+        if (fabs(fval - prefval) < ftol || i == (it - 1)){
+            break;
+        }
+        grad_fn(x1, data, g1, NULL);
+        for(j = 0; j < n; j++){
+            s[j] = x1[j] - x0[j];
+            y[j] = g1[j] - g0[j];
+        }
+        t = g0; g0 = g1; g1 = t;
+        t = x0; x0 = x1; x1 = t;
+        get_inv_h(n, s, y, b);
+    }
+    memmove(retx, x1, sizeof(double) * n);
+    free(x0);
+    free(x1);
+    free(g0);
+    free(g1);
+    free(dir);
+    free(b);
+    free(s);
+    free(y);
+    return 0;
 }
 
 int newton(EVAL_FN eval_fn, GRAD_FN grad_fn, REPO_FN repo_fn, NT_METHOD method, void * data, int m, int max_iter, int n, double *retx){
