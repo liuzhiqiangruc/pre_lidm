@@ -8,14 +8,21 @@ CC = gcc -std=c99 -g
 CFBASE = -Wall -pedantic -pipe
 CFLAGS = $(CFBASE) -DNDEBUG -DNPRINT -O0 -I$(INC)
 
-PRGS   = lr
+PRGS   = lr lda
 
 all : $(PRGS)
 
 lr.o : lr.c
 	$(CC) $(CFLAGS) -c $^ -o $@
+
+lda.o : lda.c
+	$(CC) $(CFLAGS) -c $^ -o $@
+
 lr : lr.o
 	$(CC) -L$(LIB) $^ -llrs -lm -o $@
+
+lda: lda.o
+	$(CC) -L$(LIB) $^ -lldas -lm -o $@
 
 bin_install:
 	cp lr $(INS)/bin
