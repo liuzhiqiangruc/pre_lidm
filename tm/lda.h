@@ -43,7 +43,8 @@ typedef struct _lda {
     int v;                         /* dict size         */
     char (*id_doc_map)[KEY_SIZE];  /* doc id map        */
     char (*id_v_map)[KEY_SIZE];    /* word id map       */
-    int  (*tokens)[3];             /* tokens            */
+    int  (*tokens)[4];             /* tokens            */
+    int  * doc_entry;              /* doc entry         */
     ModelEle * nd;                 /* doc_topic matrix  */
     ModelEle * nw;                 /* topic_word matrix */
     int * nkw;                     /* token n of topic  */
