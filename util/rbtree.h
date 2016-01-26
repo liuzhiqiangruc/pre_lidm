@@ -42,4 +42,10 @@ void rb_clear (RBTree * t);
 // free the rbtree space and destory the rbtree
 void rb_free  (RBTree * t);
 
+// find max element pointer in rbtree
+void * rb_max_value(RBTree * t);
+
+// find min element pointer in rbtree
+void * rb_min_value(RBTree * t);
+
 #endif //RBTREE_H

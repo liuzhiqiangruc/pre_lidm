@@ -121,19 +121,29 @@ static void rb_trans(RBTree *t, RBNode *z, RBNode *r) {
 }
 
 /* --------------------------------------------
+ * brief  : max min node from node z
+ * para t : rb tree
+ * para z : subroutine root
+ * return : min max node from z
+ * -------------------------------------------- */
+static RBNode * rb_mm(RBTree * t, RBNode * z, int d){
+    if (!z || !t || z == t->nil){
+        return NULL;
+    }
+    while (z->child[d] != t->nil){
+        z = z->child[d];
+    }
+    return z;
+}
+
+/* --------------------------------------------
  * brief  : find min node from node z in tree t
  * para t : rb tree
  * para z : subroutine root
  * return : min node from z
  * -------------------------------------------- */
 static RBNode * rb_min(RBTree *t, RBNode *z) {
-    if (!z || !t || z == t->nil) {
-        return NULL;
-    }
-    while (z->child[0] != t->nil) {
-        z = z->child[0];
-    }
-    return z;
+    return rb_mm(t, z, 0);
 }
 
 /* ---------------------------------------
@@ -455,4 +465,24 @@ void rb_free(RBTree * t){
     free(t->nil);
     t->root = t->nil = NULL;
     free(t);
+}
+
+void * rb_max_value(RBTree *t){
+    RBNode * z = rb_mm(t, t->root, 1);
+    if (z){
+        return z->pData;
+    }
+    else{
+        return NULL;
+    }
+}
+
+void * rb_min_value(RBTree *t){
+    RBNode * z = rb_mm(t, t->root, 0);
+    if (z){
+        return z->pData;
+    }
+    else{
+        return NULL;
+    }
 }

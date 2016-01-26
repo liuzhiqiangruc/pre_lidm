@@ -5,9 +5,9 @@ LD = gcc -shared
 
 
 
-objs    = hash.o     rbtree.o    str.o
-sos     = libhs.so   librbt.so   libstr.so
-statics = libhss.a   librbts.a   libstrs.a
+objs    = hash.o     rbtree.o    str.o       median.o
+sos     = libhs.so   librbt.so   libstr.so   libmed.so
+statics = libhss.a   librbts.a   libstrs.a   libmeds.a
 
 all : $(objs) $(statics) $(sos)
 
@@ -31,12 +31,16 @@ librbt.so : rbtree.o
 	$(LD) $^ -o $@
 libstr.so : str.o
 	$(LD) $^ -o $@
+libmed.so : median.o rbtree.o
+	$(LD) $^ -o $@
 
 libhss.a : hash.o
 	ar cr $@ $^
 librbts.a : rbtree.o
 	ar cr $@ $^
 libstrs.a : str.o
+	ar cr $@ $^
+libmeds.a : median.o rbtree.o
 	ar cr $@ $^
 
 

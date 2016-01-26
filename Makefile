@@ -1,6 +1,7 @@
 UTILDIR  = util
 REGRDIR  = regr
 TMDIR    = tm
+TSDIR    = ts
 SRC      = src
 INSTDIR  = .
 
@@ -12,6 +13,7 @@ libs:
 	cd $(UTILDIR); $(MAKE) clean; $(MAKE); $(MAKE) install
 	cd $(REGRDIR); $(MAKE) clean; $(MAKE); $(MAKE) install
 	cd $(TMDIR);   $(MAKE) clean; $(MAKE); $(MAKE) install
+	cd $(TSDIR);   $(MAKE) clean; $(MAKE); $(MAKE) install
 
 app :
 	cd $(SRC); $(MAKE) clean ; $(MAKE); $(MAKE) install
@@ -41,3 +43,4 @@ clean:
 	cd $(REGRDIR);  $(MAKE) clean
 	cd $(SRC);      $(MAKE) clean
 	cd $(TMDIR);    $(MAKE) clean
+	cd $(TSDIR);    $(MAKE) clean
