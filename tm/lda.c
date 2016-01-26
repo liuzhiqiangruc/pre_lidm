@@ -127,7 +127,7 @@ static int gibbs_sample(Lda * lda) {
                 g += lda->nw[voffs + k].count * (lda->p.a + lda->nd[offs + k].count) / (vb + lda->nkw[k]);
                 k = lda->nw[voffs + k].next;
             }
-            u = (0.1 + rand()) / (0.1 + RAND_MAX) * (e + f + g);
+            u = (e + f + g) * (0.1 + rand()) / (1.0 + RAND_MAX);
             // sample k from smooth bucket
             if (u < e){
                 double s = 0.0;
@@ -144,7 +144,7 @@ static int gibbs_sample(Lda * lda) {
                 double s = 0.0;
                 k = lda->nd[offs].next;
                 while (k != 0){
-                    s += lda->nd[offs + k].count * lda->p.b / (vb + lda->nkw[k]);
+                    s += 1.0 * lda->nd[offs + k].count * lda->p.b / (vb + lda->nkw[k]);
                     if (s > u){
                         break;
                     }
@@ -152,12 +152,12 @@ static int gibbs_sample(Lda * lda) {
                 }
             }
             // sample k from topic word bucket
-            else{
-                u -= e + f;
+            else {
+                u -= (e + f);
                 double s = 0.0;
                 k = lda->nw[voffs].next;
                 while (k != 0){
-                    s += lda->nw[voffs + k].count * (lda->p.a + lda->nd[offs + k].count) / (vb + lda->nkw[k]);
+                    s += 1.0 * lda->nw[voffs + k].count * (lda->p.a + lda->nd[offs + k].count) / (vb + lda->nkw[k]);
                     if (s > u){
                         break;
                     }
@@ -171,18 +171,18 @@ static int gibbs_sample(Lda * lda) {
             }
             // link a new topic into theta matrix
             if (lda->nd[offs + k].count == 0){
-                lda->nd[offs + k].next = lda->nd[offs].next;
-                lda->nd[offs + lda->nd[offs].next].prev = k;
-                lda->nd[offs].next = k;
-                lda->nd[offs + k].prev = 0;
+                lda->nd[offs + lda->nd[offs].prev].next = k;
+                lda->nd[offs + k].prev = lda->nd[offs].prev;
+                lda->nd[offs + k].next = 0;
+                lda->nd[offs].prev = k;
             }
             lda->nd[offs + k].count += 1;
             // link a new topic into phi matrix
             if (lda->nw[voffs + k].count == 0){
-                lda->nw[voffs + k].next = lda->nw[voffs].next;
-                lda->nw[voffs + lda->nw[voffs].next].prev = k;
-                lda->nw[voffs].next = k;
-                lda->nw[voffs + k].prev = 0;
+                lda->nw[voffs + lda->nw[voffs].prev].next = k;
+                lda->nw[voffs + k].prev = lda->nw[voffs].prev;
+                lda->nw[voffs + k].next = 0;
+                lda->nw[voffs].prev = k;
             }
             lda->nw[voffs + k].count += 1;
             lda->nkw[k] += 1;
