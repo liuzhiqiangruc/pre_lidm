@@ -19,12 +19,13 @@ libs:
 
 app :
 	cd $(SRC); $(MAKE) clean ; $(MAKE); $(MAKE) install
+	make lib_install
 
 
 # --------------
 # install
 # --------------
-install:
+lib_install:
 	cp -r lib output
 	cp -r inc output
 
@@ -35,7 +36,6 @@ install:
 .PHONY : localclean clean
 
 localclean:
-	rm -rf output
 	rm -rf inc
 	rm -rf lib
 
