@@ -26,6 +26,7 @@ lda: lda.o
 
 bin_install:
 	cp lr $(INS)/bin
+	cp lda $(INS)/bin
 
 install:
 	-mkdir -p $(INS)/bin

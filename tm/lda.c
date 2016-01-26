@@ -7,6 +7,7 @@
  *   info     :
  * ======================================================== */
 
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -274,8 +275,11 @@ void est_lda(Lda *lda) {
     // and link the nonzero elements
     fullfill_param(lda);
     // est iteration for lda
-    for (int n = 0; n <= lda->p.niters; n++){
+    for (int n = 1; n <= lda->p.niters; n++){
+        long sec1 = time(NULL);
         gibbs_sample(lda);
+        long sec2 = time(NULL);
+        fprintf(stderr, "iter %d done, using %ld seconds\n", n, sec2 - sec1);
         if (n % lda->p.savestep == 0){
             save_lda(lda, n);
         }
